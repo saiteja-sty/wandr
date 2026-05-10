@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "vscjava.vscode-java-pack",
+    "vmware.vscode-boot-dev-pack",
+    "vscjava.vscode-spring-boot-dashboard",
+    "ritwickdey.LiveServer",
+    "github.vscode-pull-request-github",
+    "esbenp.prettier-vscode"
+  ]
+}

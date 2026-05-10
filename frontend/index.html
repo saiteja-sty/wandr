@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Wandr — Travel, like a local.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --paper: #f5f1e8;
+    --paper-warm: #ede5d3;
+    --rust: #c2410c;
+    --rust-deep: #9a3412;
+    --gold: #d4a574;
+    --cream: #faf6ee;
+    --moss: #4a6b3f;
+    --plum: #6b3f5e;
+    --shadow: rgba(10, 10, 10, 0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter Tight', sans-serif;
+    background: var(--paper); color: var(--ink);
+    overflow-x: hidden; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    pointer-events: none; z-index: 1000;
+    opacity: 0.05; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ANIMATED BACKGROUND ORBS — the Kling-style ambient motion */
+  .bg-orbs {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: 0.4;
+    animation: orb-float 20s ease-in-out infinite;
+  }
+  .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, var(--rust), transparent); top: -150px; left: -100px; animation-delay: 0s; }
+  .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, var(--gold), transparent); top: 30%; right: -200px; animation-delay: -5s; }
+  .orb-3 { width: 400px; height: 400px; background: radial-gradient(circle, var(--moss), transparent); bottom: 10%; left: 30%; animation-delay: -10s; opacity: 0.25; }
+  .orb-4 { width: 500px; height: 500px; background: radial-gradient(circle, var(--plum), transparent); bottom: -100px; right: 20%; animation-delay: -15s; opacity: 0.25; }
+  @keyframes orb-float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(80px, -50px) scale(1.15); }
+    66% { transform: translate(-50px, 70px) scale(0.92); }
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 24px 48px; display: flex; justify-content: space-between;
+    align-items: center; transition: all 0.4s ease;
+  }
+  nav.scrolled {
+    background: rgba(245, 241, 232, 0.85); backdrop-filter: blur(20px);
+    padding: 16px 48px; border-bottom: 1px solid rgba(10,10,10,0.06);
+  }
+  .logo {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 28px; letter-spacing: -0.03em;
+    display: flex; align-items: center; gap: 8px;
+    position: relative; z-index: 2;
+  }
+  .logo-dot {
+    width: 10px; height: 10px; background: var(--rust);
+    border-radius: 50%; transform: translateY(-4px);
+    animation: logo-pulse 2s ease-in-out infinite;
+  }
+  @keyframes logo-pulse {
+    0%, 100% { transform: translateY(-4px) scale(1); box-shadow: 0 0 0 0 rgba(194, 65, 12, 0.4); }
+    50% { transform: translateY(-4px) scale(1.2); box-shadow: 0 0 0 8px rgba(194, 65, 12, 0); }
+  }
+  .nav-links { display: flex; gap: 36px; align-items: center; position: relative; z-index: 2; }
+  .nav-links a {
+    text-decoration: none; color: var(--ink);
+    font-size: 14px; font-weight: 500; opacity: 0.7;
+    transition: opacity 0.2s; cursor: pointer;
+  }
+  .nav-links a:hover { opacity: 1; }
+
+  /* BUTTONS */
+  .btn {
+    padding: 10px 20px; border-radius: 100px;
+    font-size: 14px; font-weight: 600; border: none; cursor: pointer;
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--rust); color: var(--cream);
+    box-shadow: 0 4px 14px rgba(194, 65, 12, 0.25);
+  }
+  .btn-primary:hover {
+    background: var(--rust-deep); transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(194, 65, 12, 0.4);
+  }
+  .btn-large { padding: 18px 36px; font-size: 16px; }
+  .btn-outline {
+    background: transparent; color: var(--ink);
+    border: 1.5px solid var(--ink);
+  }
+  .btn-outline:hover { background: var(--ink); color: var(--cream); transform: translateY(-2px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; padding: 140px 48px 80px;
+    position: relative; display: flex; flex-direction: column;
+    justify-content: center; overflow: hidden; z-index: 1;
+  }
+
+  /* CITY SWITCHER */
+  .city-switcher {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--cream); border: 1px solid rgba(10,10,10,0.08);
+    border-radius: 100px; padding: 8px 8px 8px 16px;
+    margin-bottom: 32px; box-shadow: 0 4px 16px var(--shadow);
+    width: fit-content;
+  }
+  .city-switcher-label {
+    font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.15em; color: rgba(10,10,10,0.5); font-weight: 600;
+  }
+  .city-pills { display: flex; gap: 4px; align-items: center; }
+  .city-pill {
+    padding: 6px 14px; border-radius: 100px;
+    font-size: 13px; font-weight: 500; cursor: pointer; border: none;
+    background: transparent; color: var(--ink);
+    transition: all 0.2s; font-family: inherit;
+  }
+  .city-pill.active { background: var(--ink); color: var(--cream); }
+  .city-pill:not(.active):not(:disabled):hover { background: rgba(10,10,10,0.06); }
+  .city-pill:disabled { opacity: 0.5; cursor: not-allowed; }
+  .city-pill .badge {
+    display: inline-block; margin-left: 6px; padding: 2px 6px;
+    background: var(--gold); color: var(--ink); border-radius: 6px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .city-locate-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid rgba(10,10,10,0.1);
+    background: var(--paper-warm); color: var(--rust);
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.2s; margin-left: 4px;
+  }
+  .city-locate-btn:hover { background: var(--rust); color: var(--cream); transform: scale(1.05) rotate(15deg); }
+  .city-locate-btn svg { width: 16px; height: 16px; }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(56px, 11vw, 180px);
+    font-weight: 400; line-height: 0.92;
+    letter-spacing: -0.04em; margin-bottom: 32px;
+  }
+  .hero h1 .italic { font-style: italic; font-weight: 300; color: var(--rust); }
+  .hero h1 .underline { position: relative; display: inline-block; }
+  .hero h1 .underline::after {
+    content: ''; position: absolute; bottom: 8px; left: 0;
+    width: 100%; height: 6px; background: var(--gold);
+    z-index: -1; opacity: 0.6;
+    animation: underline-stretch 3s ease-in-out infinite;
+  }
+  @keyframes underline-stretch {
+    0%, 100% { transform: scaleX(1); }
+    50% { transform: scaleX(1.1); }
+  }
+  .city-name { transition: opacity 0.4s ease; display: inline-block; }
+  .hero-sub {
+    font-size: clamp(16px, 1.5vw, 20px); max-width: 520px;
+    line-height: 1.6; color: rgba(10,10,10,0.75); margin-bottom: 48px;
+  }
+  .hero-cta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .hero-meta { font-size: 13px; color: rgba(10,10,10,0.6); margin-left: 12px; }
+
+  /* HERO ANIMATED ICON CARDS */
+  .hero-icons {
+    position: absolute; right: 6%; top: 22%;
+    width: 380px; height: 380px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; pointer-events: none; z-index: 5;
+  }
+  .hero-icon-card {
+    background: var(--cream); border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 20px 40px var(--shadow), 0 0 0 1px rgba(10,10,10,0.04);
+    display: flex; flex-direction: column; justify-content: space-between;
+    pointer-events: auto;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    position: relative; overflow: hidden;
+  }
+  .hero-icon-card:nth-child(1) { animation: card-float-1 6s ease-in-out infinite; transform: rotate(-3deg); }
+  .hero-icon-card:nth-child(2) { animation: card-float-2 7s ease-in-out infinite; transform: rotate(3deg); margin-top: 30px; }
+  .hero-icon-card:nth-child(3) { animation: card-float-3 8s ease-in-out infinite; transform: rotate(2deg); margin-top: -30px; }
+  .hero-icon-card:nth-child(4) { animation: card-float-4 7.5s ease-in-out infinite; transform: rotate(-2deg); }
+  .hero-icon-card:hover { transform: scale(1.08) rotate(0deg) !important; z-index: 10; }
+  @keyframes card-float-1 { 0%, 100% { transform: rotate(-3deg) translateY(0); } 50% { transform: rotate(-3deg) translateY(-12px); } }
+  @keyframes card-float-2 { 0%, 100% { transform: rotate(3deg) translateY(0); } 50% { transform: rotate(3deg) translateY(-10px); } }
+  @keyframes card-float-3 { 0%, 100% { transform: rotate(2deg) translateY(0); } 50% { transform: rotate(2deg) translateY(-14px); } }
+  @keyframes card-float-4 { 0%, 100% { transform: rotate(-2deg) translateY(0); } 50% { transform: rotate(-2deg) translateY(-8px); } }
+
+  .hero-icon-svg {
+    width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 16px;
+    margin-bottom: 12px;
+  }
+  .hero-icon-svg svg { width: 32px; height: 32px; stroke-width: 1.6; }
+  .hero-icon-card.travel .hero-icon-svg { background: linear-gradient(135deg, #fde4cf, #f5b78b); color: var(--rust); }
+  .hero-icon-card.shop .hero-icon-svg { background: linear-gradient(135deg, #e8d4f0, #c89dd6); color: var(--plum); }
+  .hero-icon-card.food .hero-icon-svg { background: linear-gradient(135deg, #fde0d4, #f0a880); color: #a04020; }
+  .hero-icon-card.movie .hero-icon-svg { background: linear-gradient(135deg, #d4e8d4, #8fbf8f); color: var(--moss); }
+
+  .hero-icon-card .icon-label {
+    font-family: 'Fraunces', serif; font-size: 18px;
+    font-weight: 500; letter-spacing: -0.01em;
+  }
+  .hero-icon-card .icon-meta {
+    font-size: 11px; color: rgba(10,10,10,0.5); margin-top: 2px;
+  }
+
+  /* SVG icon micro-animations */
+  .pulse-dot { animation: dot-pulse 2s ease-in-out infinite; transform-origin: center; }
+  @keyframes dot-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Animated icon: bus wheels rotate */
+  .bus-wheel { animation: wheel-spin 3s linear infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes wheel-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+  /* Animated icon: bag bounce */
+  .bag-icon { animation: gentle-bounce 3s ease-in-out infinite; transform-origin: center; }
+  @keyframes gentle-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+
+  /* Animated icon: film frames slide */
+  .film-frame { animation: frame-slide 4s linear infinite; }
+  @keyframes frame-slide {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+  }
+
+  /* Animated icon: steam rise */
+  .steam-line { animation: steam-rise 2s ease-in-out infinite; transform-origin: bottom; }
+  .steam-line:nth-child(2) { animation-delay: 0.3s; }
+  .steam-line:nth-child(3) { animation-delay: 0.6s; }
+  @keyframes steam-rise {
+    0%, 100% { opacity: 0.4; transform: translateY(0) scaleY(1); }
+    50% { opacity: 1; transform: translateY(-2px) scaleY(1.2); }
+  }
+
+  .scroll-hint {
+    position: absolute; bottom: 40px; left: 50%;
+    transform: translateX(-50%); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: rgba(10,10,10,0.5); z-index: 11;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, transparent, var(--ink));
+    animation: scroll-pulse 2s ease-in-out infinite;
+  }
+  @keyframes scroll-pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  /* SECTIONS */
+  section { padding: 120px 48px; position: relative; z-index: 1; }
+  .section-tag {
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.25em;
+    color: var(--rust); margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--rust); }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(40px, 6vw, 80px);
+    font-weight: 400; line-height: 1;
+    letter-spacing: -0.03em; margin-bottom: 32px; max-width: 900px;
+  }
+  .section-title .italic { font-style: italic; color: var(--rust); font-weight: 300; }
+
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-stagger > * {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal-stagger.visible > * { opacity: 1; transform: translateY(0); }
+  .reveal-stagger.visible > *:nth-child(1) { transition-delay: 0s; }
+  .reveal-stagger.visible > *:nth-child(2) { transition-delay: 0.1s; }
+  .reveal-stagger.visible > *:nth-child(3) { transition-delay: 0.2s; }
+  .reveal-stagger.visible > *:nth-child(4) { transition-delay: 0.3s; }
+  .reveal-stagger.visible > *:nth-child(5) { transition-delay: 0.4s; }
+  .reveal-stagger.visible > *:nth-child(6) { transition-delay: 0.5s; }
+
+  /* CATEGORIES — main showcase */
+  .categories {
+    background: var(--paper-warm); border-radius: 48px;
+    margin: 0 24px; padding: 100px 48px;
+  }
+  .category-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px; margin-top: 60px;
+  }
+  .cat-card {
+    background: var(--cream); border-radius: 28px;
+    padding: 36px 28px;
+    border: 1px solid rgba(10,10,10,0.04);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s, border-color 0.3s;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .cat-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+      rgba(194, 65, 12, 0.08), transparent 60%);
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .cat-card:hover::before { opacity: 1; }
+  .cat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 30px 60px rgba(10,10,10,0.12);
+    border-color: var(--rust);
+  }
+
+  .cat-icon {
+    width: 72px; height: 72px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 20px; margin-bottom: 20px;
+    transition: transform 0.4s ease;
+  }
+  .cat-card:hover .cat-icon { transform: rotate(-8deg) scale(1.1); }
+  .cat-icon svg { width: 38px; height: 38px; stroke-width: 1.6; }
+
+  .cat-icon.travel { background: linear-gradient(135deg, #fde4cf, #f5b78b); color: var(--rust); }
+  .cat-icon.shop { background: linear-gradient(135deg, #e8d4f0, #c89dd6); color: var(--plum); }
+  .cat-icon.food { background: linear-gradient(135deg, #fde0d4, #f0a880); color: #a04020; }
+  .cat-icon.movie { background: linear-gradient(135deg, #d4e8d4, #8fbf8f); color: var(--moss); }
+  .cat-icon.shuttle { background: linear-gradient(135deg, #ffe4b5, #d4a574); color: #8b6914; }
+  .cat-icon.gem { background: linear-gradient(135deg, #ffd4e5, #ff7eb9); color: #b8336a; }
+
+  .cat-card h3 {
+    font-family: 'Fraunces', serif; font-size: 26px;
+    font-weight: 500; letter-spacing: -0.01em; margin-bottom: 8px;
+  }
+  .cat-card .cat-desc {
+    font-size: 14px; color: rgba(10,10,10,0.65);
+    line-height: 1.6; margin-bottom: 20px;
+  }
+  .cat-stats {
+    display: flex; justify-content: space-between;
+    padding-top: 16px; border-top: 1px solid rgba(10,10,10,0.06);
+    font-size: 13px;
+  }
+  .cat-stats .count { color: var(--rust); font-weight: 600; }
+  .cat-stats .arrow {
+    color: rgba(10,10,10,0.4);
+    transition: transform 0.3s, color 0.3s;
+  }
+  .cat-card:hover .cat-stats .arrow { color: var(--rust); transform: translateX(4px); }
+
+  /* WHY */
+  .why { padding: 120px 48px; }
+  .why-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 48px; margin-top: 80px;
+  }
+  .why-number {
+    font-family: 'Fraunces', serif; font-size: 56px;
+    font-weight: 300; font-style: italic; color: var(--rust);
+    line-height: 1; margin-bottom: 16px;
+  }
+  .why-item h3 {
+    font-family: 'Fraunces', serif; font-size: 24px;
+    font-weight: 500; margin-bottom: 12px; letter-spacing: -0.01em;
+  }
+  .why-item p { color: rgba(10,10,10,0.65); font-size: 15px; line-height: 1.6; }
+
+  /* DETAIL CARDS */
+  .detail-card {
+    margin: 80px 24px 0; background: var(--ink); color: var(--cream);
+    border-radius: 32px; padding: 80px 64px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+    align-items: center; position: relative; overflow: hidden;
+  }
+  .detail-card.alt { background: var(--cream); color: var(--ink); border: 1px solid rgba(10,10,10,0.08); }
+  .detail-num {
+    font-family: 'Fraunces', serif; font-size: 14px;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    opacity: 0.5; margin-bottom: 16px;
+  }
+  .detail-card h3 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(32px, 3.5vw, 52px);
+    font-weight: 400; line-height: 1.05;
+    letter-spacing: -0.02em; margin-bottom: 24px;
+  }
+  .detail-card h3 .italic { font-style: italic; color: var(--gold); }
+  .detail-card.alt h3 .italic { color: var(--rust); }
+  .detail-card p { font-size: 16px; line-height: 1.6; opacity: 0.85; margin-bottom: 24px; }
+  .detail-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .detail-tag {
+    padding: 6px 14px; border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px; font-size: 12px; font-weight: 500;
+  }
+  .detail-card.alt .detail-tag { border-color: rgba(10,10,10,0.15); }
+
+  .mockup {
+    background: rgba(255,255,255,0.05); border-radius: 20px;
+    padding: 24px; border: 1px solid rgba(255,255,255,0.1);
+  }
+  .detail-card.alt .mockup { background: var(--paper-warm); border-color: rgba(10,10,10,0.06); }
+  .mockup-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 16px; font-size: 13px; opacity: 0.7;
+  }
+  .detail-card.alt .mockup-header { border-color: rgba(10,10,10,0.08); }
+  .mockup-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
+  }
+  .detail-card.alt .mockup-line { border-color: rgba(10,10,10,0.06); color: var(--ink); }
+  .mockup-line:hover {
+    padding-left: 8px; padding-right: 8px;
+    background: rgba(212, 165, 116, 0.08); border-radius: 8px;
+  }
+  .mockup-line:last-child { border-bottom: none; }
+  .mockup-time { font-family: 'Fraunces', serif; color: var(--gold); font-weight: 500; }
+  .detail-card.alt .mockup-time { color: var(--rust); }
+
+  /* COMMUNITY */
+  .community {
+    background: var(--paper-warm); border-radius: 48px;
+    margin: 80px 24px 0; padding: 120px 48px;
+  }
+  .community-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center; margin-top: 60px;
+  }
+  .community-text p {
+    font-size: 17px; line-height: 1.7;
+    color: rgba(10,10,10,0.7); margin-bottom: 20px;
+  }
+  .community-text strong { color: var(--rust); font-weight: 600; }
+  .community-cta { margin-top: 32px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .submissions { position: relative; height: 480px; }
+  .submission-card {
+    position: absolute; background: var(--cream);
+    border-radius: 20px; padding: 20px;
+    box-shadow: 0 20px 40px var(--shadow), 0 0 0 1px rgba(10,10,10,0.04);
+    width: 280px; transition: transform 0.4s ease;
+    cursor: pointer;
+  }
+  .submission-card:nth-child(1) { top: 0; left: 0; transform: rotate(-3deg); z-index: 3; }
+  .submission-card:nth-child(2) { top: 60px; right: 0; transform: rotate(3deg); z-index: 2; }
+  .submission-card:nth-child(3) { bottom: 40px; left: 40px; transform: rotate(-1deg); z-index: 1; }
+  .submission-card:hover { transform: rotate(0) translateY(-6px) scale(1.03); z-index: 10; }
+  .submission-author { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .submission-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--rust), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    color: var(--cream); font-weight: 600; font-size: 13px;
+  }
+  .submission-name { font-size: 13px; font-weight: 600; }
+  .submission-meta { font-size: 11px; color: rgba(10,10,10,0.5); }
+  .submission-content {
+    font-family: 'Fraunces', serif; font-size: 15px;
+    line-height: 1.5; margin-bottom: 12px;
+  }
+  .submission-tag {
+    display: inline-block; padding: 4px 10px;
+    background: var(--paper-warm); border-radius: 100px;
+    font-size: 11px; font-weight: 600; color: var(--rust);
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+
+  /* WHY SIGNUP */
+  .signup-benefits { text-align: center; padding: 120px 48px; }
+  .signup-benefits .section-title { margin-left: auto; margin-right: auto; text-align: center; }
+  .signup-benefits-intro {
+    max-width: 600px; margin: 0 auto 60px; font-size: 17px;
+    color: rgba(10,10,10,0.65); line-height: 1.6;
+  }
+  .benefits-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 32px; max-width: 1200px; margin: 0 auto;
+  }
+  .benefit-card {
+    background: var(--cream); border-radius: 24px;
+    padding: 36px 28px; text-align: left;
+    border: 1px solid rgba(10,10,10,0.06);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px var(--shadow);
+  }
+  .benefit-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: var(--paper-warm); color: var(--rust);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+  }
+  .benefit-icon svg { width: 22px; height: 22px; }
+  .benefit-card h4 {
+    font-family: 'Fraunces', serif; font-size: 20px;
+    font-weight: 500; margin-bottom: 10px; letter-spacing: -0.01em;
+  }
+  .benefit-card p {
+    font-size: 14px; line-height: 1.6; color: rgba(10,10,10,0.65);
+  }
+
+  /* CITIES */
+  .coming-soon { padding: 120px 48px; text-align: center; }
+  .city-tiles {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px; max-width: 1200px; margin: 60px auto 0;
+  }
+  .city-tile {
+    background: var(--cream); border: 1px solid rgba(10,10,10,0.06);
+    border-radius: 20px; padding: 32px 24px;
+    text-align: left; transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .city-tile.live { background: var(--ink); color: var(--cream); }
+  .city-tile:hover { transform: translateY(-4px); box-shadow: 0 20px 40px var(--shadow); }
+  .city-tile-status {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.2em; font-weight: 600;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rust); }
+  .city-tile.live .status-dot { background: #4ade80; animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .city-tile-name {
+    font-family: 'Fraunces', serif; font-size: 28px;
+    font-weight: 500; letter-spacing: -0.02em; margin-bottom: 4px;
+  }
+  .city-tile-region { font-size: 13px; opacity: 0.6; }
+
+  /* CTA */
+  .cta {
+    background: var(--ink); color: var(--cream);
+    border-radius: 48px; margin: 80px 24px;
+    padding: 120px 48px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cta::before {
+    content: ''; position: absolute; top: -50%; left: -10%;
+    width: 60%; height: 200%;
+    background: radial-gradient(circle, rgba(194, 65, 12, 0.4), transparent 70%);
+    pointer-events: none;
+    animation: cta-glow-1 8s ease-in-out infinite;
+  }
+  .cta::after {
+    content: ''; position: absolute; bottom: -50%; right: -10%;
+    width: 60%; height: 200%;
+    background: radial-gradient(circle, rgba(212, 165, 116, 0.3), transparent 70%);
+    pointer-events: none;
+    animation: cta-glow-2 10s ease-in-out infinite;
+  }
+  @keyframes cta-glow-1 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(50px, 30px); } }
+  @keyframes cta-glow-2 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-50px, -30px); } }
+  .cta h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 300; line-height: 1; letter-spacing: -0.03em;
+    margin-bottom: 24px; position: relative;
+  }
+  .cta h2 .italic { font-style: italic; color: var(--gold); }
+  .cta p {
+    font-size: 18px; opacity: 0.7; margin-bottom: 48px;
+    max-width: 500px; margin-left: auto; margin-right: auto; position: relative;
+  }
+  .cta .btn-primary {
+    background: var(--cream); color: var(--ink);
+    position: relative; box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  }
+  .cta .btn-primary:hover { background: var(--gold); }
+
+  footer {
+    padding: 48px; display: flex; justify-content: space-between;
+    align-items: center; border-top: 1px solid rgba(10,10,10,0.08);
+    flex-wrap: wrap; gap: 24px;
+  }
+  footer p { font-size: 13px; color: rgba(10,10,10,0.5); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a {
+    font-size: 13px; color: rgba(10,10,10,0.6); text-decoration: none;
+  }
+  .footer-links a:hover { color: var(--ink); }
+
+  /* CHAT */
+  .chat-widget { position: fixed; bottom: 24px; right: 24px; z-index: 200; }
+  .chat-toggle {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--rust); border: none; cursor: pointer;
+    color: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 30px rgba(194, 65, 12, 0.4);
+    transition: transform 0.3s; position: relative;
+  }
+  .chat-toggle:hover { transform: scale(1.05) rotate(-5deg); }
+  .chat-toggle svg { width: 26px; height: 26px; }
+  .chat-pulse {
+    position: absolute; inset: -4px; border-radius: 50%;
+    background: var(--rust); opacity: 0.4;
+    animation: chat-pulse 2s ease-out infinite; z-index: -1;
+  }
+  @keyframes chat-pulse {
+    0% { transform: scale(1); opacity: 0.4; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+  .chat-window {
+    position: absolute; bottom: 80px; right: 0;
+    width: 360px; max-width: calc(100vw - 48px); height: 480px;
+    background: var(--cream); border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    display: none; flex-direction: column; overflow: hidden;
+    border: 1px solid rgba(10,10,10,0.06);
+  }
+  .chat-window.open {
+    display: flex; animation: chat-open 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes chat-open {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .chat-header {
+    background: var(--ink); color: var(--cream);
+    padding: 18px 20px; display: flex; align-items: center; gap: 12px;
+  }
+  .chat-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--rust), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px;
+  }
+  .chat-header-info h4 {
+    font-family: 'Fraunces', serif; font-size: 16px;
+    font-weight: 500; margin-bottom: 2px;
+  }
+  .chat-status { font-size: 11px; opacity: 0.7; display: flex; align-items: center; gap: 6px; }
+  .chat-status::before { content: ''; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; }
+  .chat-close {
+    margin-left: auto; background: none; border: none;
+    color: var(--cream); cursor: pointer; opacity: 0.7;
+    padding: 4px; line-height: 0;
+  }
+  .chat-close:hover { opacity: 1; }
+  .chat-messages {
+    flex: 1; padding: 20px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .chat-msg {
+    max-width: 85%; padding: 12px 16px; border-radius: 18px;
+    font-size: 14px; line-height: 1.5;
+    animation: msg-in 0.3s ease;
+  }
+  @keyframes msg-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .chat-msg.bot { background: var(--paper-warm); color: var(--ink); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .chat-msg.user { background: var(--rust); color: var(--cream); align-self: flex-end; border-bottom-right-radius: 4px; }
+  .chat-quick-replies {
+    padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 8px;
+    border-top: 1px solid rgba(10,10,10,0.06);
+  }
+  .quick-reply {
+    background: var(--paper); border: 1px solid rgba(10,10,10,0.08);
+    color: var(--ink); padding: 8px 14px; border-radius: 100px;
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    font-weight: 500; transition: all 0.2s;
+  }
+  .quick-reply:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10, 10, 10, 0.5); backdrop-filter: blur(8px);
+    z-index: 500; display: none;
+    align-items: center; justify-content: center;
+    padding: 24px; animation: overlay-in 0.3s ease;
+  }
+  .modal-overlay.open { display: flex; }
+  @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--cream); border-radius: 28px;
+    padding: 40px; max-width: 480px; width: 100%;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+    text-align: left; position: relative;
+    animation: modal-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 90vh; overflow-y: auto;
+  }
+  @keyframes modal-in {
+    from { opacity: 0; transform: scale(0.92) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal.modal-large { max-width: 560px; }
+  .modal.modal-center { text-align: center; }
+  .modal.modal-center .modal-cta { justify-content: center; }
+  .modal-icon {
+    width: 64px; height: 64px;
+    margin: 0 auto 24px;
+    background: var(--paper-warm); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--rust);
+  }
+  .modal-icon svg { width: 28px; height: 28px; }
+  .modal h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 28px; font-weight: 400;
+    line-height: 1.15; letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .modal h3 .italic { font-style: italic; color: var(--rust); }
+  .modal p {
+    font-size: 15px; line-height: 1.6;
+    color: rgba(10,10,10,0.7); margin-bottom: 20px;
+  }
+  .modal-detected {
+    display: inline-block; background: var(--paper-warm);
+    padding: 6px 14px; border-radius: 100px;
+    font-size: 12px; font-weight: 600; color: var(--ink);
+    margin-bottom: 20px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .modal-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(10,10,10,0.5);
+    transition: background 0.2s, color 0.2s; z-index: 5;
+  }
+  .modal-close:hover { background: var(--paper-warm); color: var(--ink); }
+
+  .signup-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-field label {
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: rgba(10,10,10,0.6);
+  }
+  .form-field input {
+    padding: 14px 16px; border-radius: 12px;
+    border: 1.5px solid rgba(10,10,10,0.1);
+    background: var(--paper); color: var(--ink);
+    font-size: 15px; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .form-field input:focus { outline: none; border-color: var(--rust); }
+  .signup-success { text-align: center; padding: 20px 0; }
+  .signup-success-icon {
+    width: 64px; height: 64px; margin: 0 auto 20px;
+    background: #d1fae5; color: #059669; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .signup-success-icon svg { width: 32px; height: 32px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) { .hero-icons { width: 320px; height: 320px; right: 4%; top: 25%; } }
+  @media (max-width: 900px) {
+    nav { padding: 20px 24px; }
+    nav.scrolled { padding: 14px 24px; }
+    .nav-links { gap: 16px; }
+    .nav-links a:not(.btn) { display: none; }
+    .hero { padding: 120px 24px 60px; }
+    section { padding: 80px 24px; }
+    .hero-icons { display: none; }
+    .detail-card { grid-template-columns: 1fr; padding: 48px 32px; gap: 32px; margin: 80px 12px 0; }
+    .categories, .community { margin: 0 12px; padding: 80px 32px; border-radius: 32px; }
+    .community { margin-top: 80px; }
+    .community-grid { grid-template-columns: 1fr; gap: 40px; }
+    .submissions { height: 420px; }
+    .cta { margin: 80px 12px; padding: 80px 32px; border-radius: 32px; }
+    footer { padding: 32px 24px; }
+    .chat-window { width: calc(100vw - 32px); right: -8px; }
+    .modal { padding: 28px 24px; }
+    .modal h3 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<nav id="nav">
+  <div class="logo">Wandr<span class="logo-dot"></span></div>
+  <div class="nav-links">
+    <a href="#categories">Categories</a>
+    <a href="#why">Why Wandr</a>
+    <a href="#community">Community</a>
+    <a href="#cities">Cities</a>
+    <a class="btn btn-primary" onclick="openSignup()">Sign up free</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div style="position: relative; z-index: 10;">
+    <div class="city-switcher">
+      <span class="city-switcher-label">Exploring</span>
+      <div class="city-pills">
+        <button class="city-pill active" data-city="Boston">Boston</button>
+        <button class="city-pill" data-city="New York">New York</button>
+        <button class="city-pill" disabled>More <span class="badge">Soon</span></button>
+        <button class="city-locate-btn" onclick="useMyLocation()" title="Use my location">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>
+        </button>
+      </div>
+    </div>
+    <h1>
+      <span class="city-name" id="cityName">Boston</span>,<br>
+      <span class="italic">like a</span> <span class="underline">local.</span>
+    </h1>
+    <p class="hero-sub" id="heroSub">Travel, eat, shop, watch — and find the spots locals love. Wandr stitches it all into one quiet, beautiful guide for Boston.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary btn-large" onclick="openSignup()">Sign up free →</a>
+      <span class="hero-meta">Save spots · Personalized routes · Free forever</span>
+    </div>
+  </div>
+
+  <div class="hero-icons">
+    <div class="hero-icon-card travel" onclick="document.getElementById('categories').scrollIntoView({behavior:'smooth'})">
+      <div class="hero-icon-svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="6" width="18" height="11" rx="2"/>
+          <path d="M3 11h18M8 17v3M16 17v3"/>
+          <circle cx="8" cy="14" r="1.5" class="bus-wheel"/>
+          <circle cx="16" cy="14" r="1.5" class="bus-wheel"/>
+        </svg>
+      </div>
+      <div><div class="icon-label">Transit</div><div class="icon-meta">Live MBTA</div></div>
+    </div>
+    <div class="hero-icon-card shop" onclick="document.getElementById('categories').scrollIntoView({behavior:'smooth'})">
+      <div class="hero-icon-svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="bag-icon">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      </div>
+      <div><div class="icon-label">Shopping</div><div class="icon-meta">Top stores</div></div>
+    </div>
+    <div class="hero-icon-card food" onclick="document.getElementById('categories').scrollIntoView({behavior:'smooth'})">
+      <div class="hero-icon-svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="9" y1="2" x2="9" y2="5" class="steam-line"/>
+          <line x1="12" y1="2" x2="12" y2="5" class="steam-line"/>
+          <line x1="15" y1="2" x2="15" y2="5" class="steam-line"/>
+          <path d="M3 11h18a8 8 0 0 1-8 8H11a8 8 0 0 1-8-8z"/>
+          <path d="M2 19h20"/>
+        </svg>
+      </div>
+      <div><div class="icon-label">Food</div><div class="icon-meta">Local picks</div></div>
+    </div>
+    <div class="hero-icon-card movie" onclick="document.getElementById('categories').scrollIntoView({behavior:'smooth'})">
+      <div class="hero-icon-svg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+          <path d="M7 2v20M17 2v20M2 12h20"/>
+          <rect x="3" y="3" width="3" height="3" class="film-frame"/>
+          <rect x="3" y="18" width="3" height="3" class="film-frame"/>
+          <rect x="18" y="3" width="3" height="3" class="film-frame"/>
+          <rect x="18" y="18" width="3" height="3" class="film-frame"/>
+        </svg>
+      </div>
+      <div><div class="icon-label">Movies</div><div class="icon-meta">Showtimes</div></div>
+    </div>
+  </div>
+
+  <div class="scroll-hint"><span>Scroll</span><div class="scroll-line"></div></div>
+</section>
+
+<section id="categories" class="categories">
+  <div class="reveal">
+    <div class="section-tag">Everything you need</div>
+    <h2 class="section-title">One app. <span class="italic">Six things tourists juggle.</span></h2>
+  </div>
+  <div class="category-grid reveal-stagger">
+    <div class="cat-card" onmousemove="trackMouse(event, this)" onclick="openCategoryModal('travel')">
+      <div class="cat-icon travel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="11" rx="2"/><path d="M3 11h18M8 17v3M16 17v3"/><circle cx="8" cy="14" r="1.5"/><circle cx="16" cy="14" r="1.5"/></svg></div>
+      <h3>Public Transit</h3>
+      <p class="cat-desc">Live MBTA & MTA schedules, fare guides, station maps. Decoded in plain English.</p>
+      <div class="cat-stats"><span class="count" id="statTransit">185 stops</span><span class="arrow">→</span></div>
+    </div>
+    <div class="cat-card" onmousemove="trackMouse(event, this)" onclick="openCategoryModal('shuttle')">
+      <div class="cat-icon shuttle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 13h20M7 19v2M17 19v2"/><circle cx="7" cy="16" r="1.5"/><circle cx="17" cy="16" r="1.5"/></svg></div>
+      <h3>Free Shuttles</h3>
+      <p class="cat-desc">Hospital loops, Seaport buses, university shuttles open to everyone — completely free.</p>
+      <div class="cat-stats"><span class="count" id="statShuttle">52 routes</span><span class="arrow">→</span></div>
+    </div>
+    <div class="cat-card" onmousemove="trackMouse(event, this)" onclick="openCategoryModal('food')">
+      <div class="cat-icon food"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18a8 8 0 0 1-8 8H11a8 8 0 0 1-8-8z"/><path d="M7 11V7a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v4M2 19h20"/></svg></div>
+      <h3>Food</h3>
+      <p class="cat-desc">Where locals actually eat. Cannoli that's better than Mike's. Pizza that's worth the line.</p>
+      <div class="cat-stats"><span class="count" id="statFood">340+ spots</span><span class="arrow">→</span></div>
+    </div>
+    <div class="cat-card" onmousemove="trackMouse(event, this)" onclick="openCategoryModal('shop')">
+      <div class="cat-icon shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg></div>
+      <h3>Shopping</h3>
+      <p class="cat-desc">Boutique streets, vintage corners, outlet malls, indie bookshops — by neighborhood.</p>
+      <div class="cat-stats"><span class="count" id="statShop">220+ stores</span><span class="arrow">→</span></div>
+    </div>
+    <div class="cat-card" onmousemove="trackMouse(event, this)" onclick="openCategoryModal('movie')">
+      <div class="cat-icon movie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg></div>
+      <h3>Movies</h3>
+      <p class="cat-desc">Nearby theaters, indie cinemas, IMAX, drive-ins. Showtimes without leaving Wandr.</p>
+      <div class="cat-stats"><span class="count" id="statMovie">28 theaters</span><span class="arrow">→</span></div>
+    </div>
+    <div class="cat-card" onmousemove="trackMouse(event, this)" onclick="openCategoryModal('gem')">
+      <div class="cat-icon gem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3 2 9l10 13L22 9l-4-6z"/><path d="M11 3 8 9l4 13 4-13-3-6M2 9h20"/></svg></div>
+      <h3>Hidden Gems</h3>
+      <p class="cat-desc">The rooftop you didn't know was open. The bookstore behind the church. Locals only.</p>
+      <div class="cat-stats"><span class="count" id="statGem">800+ gems</span><span class="arrow">→</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="why" class="why">
+  <div class="reveal">
+    <div class="section-tag">Why Wandr</div>
+    <h2 class="section-title">Tourists juggle <span class="italic">ten apps.</span><br>You'll only need one.</h2>
+  </div>
+  <div class="why-grid reveal-stagger">
+    <div class="why-item"><div class="why-number">01</div><h3>One quiet place</h3><p>Transit, food, shopping, movies, gems — without bouncing between Maps, Yelp, Fandango, and the city transit site.</p></div>
+    <div class="why-item"><div class="why-number">02</div><h3>Built for travelers</h3><p>No accounts to sell. No reviews to game. Just curated, honest, locally-rooted recommendations.</p></div>
+    <div class="why-item"><div class="why-number">03</div><h3>Works offline</h3><p>Roaming on a tourist plan is rough. Save your day's plan and access it without bars.</p></div>
+    <div class="why-item"><div class="why-number">04</div><h3>Community-sourced</h3><p>Real locals submit the spots tourists never find. Curated, never crowdsourced into chaos.</p></div>
+  </div>
+</section>
+
+<div class="detail-card reveal">
+  <div>
+    <div class="detail-num" id="transitNum">01 — MBTA Transit</div>
+    <h3 id="transitTitle">The "T," <span class="italic">decoded.</span></h3>
+    <p id="transitDesc">Live MBTA schedules, fare cards, station maps, and the unspoken rules of the Green Line — all in plain English.</p>
+    <div class="detail-tags"><span class="detail-tag">Real-time</span><span class="detail-tag" id="transitFare">Charlie Card guide</span><span class="detail-tag">Station guide</span></div>
+  </div>
+  <div class="mockup" id="transitMockup"></div>
+</div>
+
+<div class="detail-card alt reveal">
+  <div class="mockup" id="shopMockup"></div>
+  <div>
+    <div class="detail-num">02 — Shopping</div>
+    <h3>From Newbury Street<br>to <span class="italic">SoHo.</span></h3>
+    <p>Boutique streets, vintage corners, outlet malls, indie bookshops — sorted by neighborhood, mood, and budget.</p>
+    <div class="detail-tags"><span class="detail-tag">Boutiques</span><span class="detail-tag">Vintage</span><span class="detail-tag">Outlets</span></div>
+  </div>
+</div>
+
+<div class="detail-card reveal">
+  <div>
+    <div class="detail-num">03 — Movies & Theaters</div>
+    <h3>Showtimes, <span class="italic">simplified.</span></h3>
+    <p>Find nearby theaters, indie cinemas, IMAX screens, and drive-ins. We link directly to showtimes and tickets.</p>
+    <div class="detail-tags"><span class="detail-tag">Indie</span><span class="detail-tag">IMAX</span><span class="detail-tag">Drive-in</span></div>
+  </div>
+  <div class="mockup" id="movieMockup"></div>
+</div>
+
+<div class="detail-card alt reveal">
+  <div class="mockup" id="gemMockup"></div>
+  <div>
+    <div class="detail-num">04 — Hidden gems</div>
+    <h3>Spots Google<br><span class="italic">won't surface.</span></h3>
+    <p>The cannoli place locals actually go to. The bookstore behind the church. The rooftop you didn't know was open.</p>
+    <div class="detail-tags"><span class="detail-tag">Locally curated</span><span class="detail-tag">No ads</span><span class="detail-tag">Updated weekly</span></div>
+  </div>
+</div>
+
+<section id="community" class="community">
+  <div class="reveal">
+    <div class="section-tag">Community-sourced</div>
+    <h2 class="section-title">Locals know things.<br><span class="italic">We just ask.</span></h2>
+  </div>
+  <div class="community-grid">
+    <div class="community-text reveal">
+      <p>Every recommendation on Wandr starts with a real person who lives in the city. <strong>No algorithms. No paid placements. No review-bombing.</strong></p>
+      <p>Locals submit the spots they love. Our team verifies each one before it goes live.</p>
+      <div class="community-cta"><a class="btn btn-primary" onclick="openSignup()">Submit a hidden gem</a></div>
+    </div>
+    <div class="submissions reveal" id="submissions"></div>
+  </div>
+</section>
+
+<section class="signup-benefits">
+  <div class="reveal">
+    <div class="section-tag" style="justify-content: center;">Why sign up</div>
+    <h2 class="section-title">Free, but not <span class="italic">empty.</span></h2>
+    <p class="signup-benefits-intro">Wandr works without an account, but signing up unlocks the parts that make it actually yours.</p>
+  </div>
+  <div class="benefits-grid reveal-stagger">
+    <div class="benefit-card">
+      <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>
+      <h4>Save your spots</h4><p>Bookmark gems, shops, theaters. Build a city-by-city list of favorites that follows you across trips.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+      <h4>Pin your stay</h4><p>Drop a pin on your Airbnb or hotel — every recommendation reorders by walking distance.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg></div>
+      <h4>Offline access</h4><p>Save a day's plan to your phone. View it on the subway, in dead zones, anywhere your data won't reach.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <h4>Submit & comment</h4><p>Found a spot we missed? Submit it. Read full stories from locals and leave a thanks on the ones that helped.</p>
+    </div>
+  </div>
+</section>
+
+<section id="cities" class="coming-soon">
+  <div class="reveal">
+    <div class="section-tag" style="justify-content: center;">Cities</div>
+    <h2 class="section-title" style="margin-left: auto; margin-right: auto;">Live now. <span class="italic">More on the way.</span></h2>
+  </div>
+  <div class="city-tiles reveal-stagger">
+    <div class="city-tile live"><div class="city-tile-status"><span class="status-dot"></span>Live now</div><div class="city-tile-name">Boston</div><div class="city-tile-region">Massachusetts</div></div>
+    <div class="city-tile live"><div class="city-tile-status"><span class="status-dot"></span>Live now</div><div class="city-tile-name">New York</div><div class="city-tile-region">New York</div></div>
+    <div class="city-tile"><div class="city-tile-status"><span class="status-dot"></span>Coming soon</div><div class="city-tile-name">Chicago</div><div class="city-tile-region">Illinois</div></div>
+    <div class="city-tile"><div class="city-tile-status"><span class="status-dot"></span>Coming soon</div><div class="city-tile-name">San Francisco</div><div class="city-tile-region">California</div></div>
+    <div class="city-tile"><div class="city-tile-status"><span class="status-dot"></span>In progress</div><div class="city-tile-name">Washington</div><div class="city-tile-region">D.C.</div></div>
+    <div class="city-tile"><div class="city-tile-status"><span class="status-dot"></span>In progress</div><div class="city-tile-name">Seattle</div><div class="city-tile-region">Washington</div></div>
+    <div class="city-tile"><div class="city-tile-status"><span class="status-dot"></span>Vote next</div><div class="city-tile-name">Austin</div><div class="city-tile-region">Texas</div></div>
+    <div class="city-tile"><div class="city-tile-status"><span class="status-dot"></span>Vote next</div><div class="city-tile-name">Philadelphia</div><div class="city-tile-region">Pennsylvania</div></div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2>Wander <span class="italic">smarter.</span><br>Sign up free.</h2>
+  <p>Save spots, drop pins, build your city. We'll send one email when your city goes live.</p>
+  <a class="btn btn-primary btn-large" onclick="openSignup()">Sign up free →</a>
+</section>
+
+<footer>
+  <p>© 2026 Wandr · Made with care</p>
+  <div class="footer-links">
+    <a href="#">Privacy</a><a href="#">Terms</a>
+    <a href="https://github.com/saiteja-sty/wandr" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="locationModal">
+  <div class="modal modal-center">
+    <button class="modal-close" onclick="closeModal('locationModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div class="modal-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+    <h3 id="modalTitle">Hi from <span class="italic" id="modalCity">somewhere new</span> 👋</h3>
+    <div class="modal-detected" id="modalDetected">Detected location</div>
+    <p id="modalMessage">We don't have Wandr in your city yet — but we're working on it. Until then, explore Boston or New York.</p>
+    <div class="modal-cta">
+      <button class="btn btn-primary" onclick="closeModalAndSwitch('Boston')">Explore Boston</button>
+      <button class="btn btn-outline" onclick="closeModalAndSwitch('New York')">Explore NYC</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="signupModal">
+  <div class="modal" id="signupModalContent">
+    <button class="modal-close" onclick="closeModal('signupModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div id="signupFormContainer"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="catModal">
+  <div class="modal modal-large">
+    <button class="modal-close" onclick="closeModal('catModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div id="catModalContent"></div>
+  </div>
+</div>
+
+<div class="chat-widget">
+  <button class="chat-toggle" id="chatToggle" aria-label="Open chat">
+    <span class="chat-pulse"></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+      <div class="chat-avatar">W</div>
+      <div class="chat-header-info"><h4>Wandr Helper</h4><div class="chat-status">Usually replies instantly</div></div>
+      <button class="chat-close" id="chatClose"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="chat-messages" id="chatMessages"><div class="chat-msg bot">Hey there! 👋 I'm Wandr's assistant. Ask me anything.</div></div>
+    <div class="chat-quick-replies">
+      <button class="quick-reply" data-q="how">How does Wandr work?</button>
+      <button class="quick-reply" data-q="city">When is my city coming?</button>
+      <button class="quick-reply" data-q="free">Is it really free?</button>
+      <button class="quick-reply" data-q="signup">Why sign up?</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const cityData = {
+  'Boston': {
+    sub: "Travel, eat, shop, watch — and find the spots locals love. Wandr stitches it all into one quiet, beautiful guide for Boston.",
+    transitNum: '01 — MBTA Transit', transitTitle: 'The "T," <span class="italic">decoded.</span>',
+    transitDesc: "Live MBTA schedules, fare cards, station maps, and the unspoken rules of the Green Line — all in plain English.",
+    transitFare: 'Charlie Card guide',
+    transitMockup: { header: 'Park Street Station', sub: 'Live', lines: [['Red Line · Alewife', '2 min'], ['Green Line · B', '4 min'], ['Red Line · Ashmont', '7 min'], ['Green Line · E', '9 min']]},
+    shopMockup: { header: 'Newbury Street, Back Bay', sub: '12 stores', lines: [['Trident Booksellers', '0.2 mi'], ['Newbury Comics', '0.3 mi'], ['Reformation', '0.4 mi'], ['Bodega (hidden)', '0.5 mi']]},
+    movieMockup: { header: 'Theaters near you', sub: '4 venues', lines: [['AMC Boston Common', '0.4 mi'], ['Coolidge Corner Theatre', '2.1 mi'], ['Brattle Theatre', '1.8 mi'], ['Kendall Square Cinema', '2.4 mi']]},
+    gemMockup: { header: 'Near Beacon Hill', sub: '4 gems', lines: [['Sevens Ale House', '★ 4.9'], ['Brattle Book Shop', '★ 4.8'], ['Acorn Street', '★ 4.9'], ['Mooo Restaurant', '★ 4.7']]},
+    stats: { transit: '185 stops', shuttle: '52 routes', food: '340+ spots', shop: '220+ stores', movie: '28 theaters', gem: '800+ gems' },
+    submissions: [
+      { initial: 'M', name: 'Maria · North End', meta: 'Local for 12 years · Verified', tag: '◆ Hidden gem', quote: 'Skip Mike\'s Pastry line. Bova\'s Bakery, two blocks over, is open 24 hours and the cannoli are honestly better.' },
+      { initial: 'J', name: 'James · Cambridge', meta: 'MIT grad student · Verified', tag: '◆ Free transit', quote: 'The EZRide shuttle is free and runs from North Station to Kendall. Saves you $2.40 every trip.' },
+      { initial: 'S', name: 'Sarah · Beacon Hill', meta: 'Local for 8 years · Verified', tag: '◆ Local tip', quote: 'Acorn Street looks staged but it\'s real. Go before 8 AM to actually walk it without crowds.' }
+    ],
+    categoryDetails: {
+      travel: { title: 'MBTA Transit', desc: 'Live MBTA schedules across the Red, Green, Blue, Orange, and Silver lines plus commuter rail. Includes fare guides for Charlie Card and Charlie Ticket, station accessibility info.', linkText: 'Open MBTA →', link: 'https://www.mbta.com' },
+      shuttle: { title: 'Free Shuttles', desc: 'Boston has dozens of free shuttle routes. MASCO Longwood serves the medical area, Seaport Shuttle connects to South Station, EZRide goes from North Station to Kendall/MIT.', linkText: 'Browse routes →', link: '#' },
+      food: { title: 'Local Food', desc: 'From Bova\'s Bakery cannoli to Giacomo\'s in the North End, to Sullivan\'s at Castle Island. Filtered by neighborhood, mood, late-night, and date-night categories.', linkText: 'Open in Maps →', link: 'https://www.google.com/maps/search/best+restaurants+boston' },
+      shop: { title: 'Boston Shopping', desc: 'Newbury Street for upscale, Charles Street for antiques, SoWa for makers, Harvard Square for indie shops. Plus Wrentham Premium Outlets with free shuttle from South Station.', linkText: 'Explore →', link: 'https://www.bostonusa.com/things-to-do/shopping/' },
+      movie: { title: 'Boston Theaters', desc: 'AMC Boston Common for blockbusters, Coolidge Corner Theatre for indie classics, Brattle Theatre in Cambridge for repertory, Kendall Square Cinema for foreign films.', linkText: 'See showtimes →', link: 'https://www.fandango.com/boston-ma_movietimes' },
+      gem: { title: 'Hidden Gems', desc: 'The rooftop at Top of the Hub. The 24-hour cannoli at Bova\'s. The bookshop behind King\'s Chapel. The free SoWa Sunday market in summer.', linkText: 'Browse all →', link: '#' }
+    }
+  },
+  'New York': {
+    sub: "Travel, eat, shop, watch — and find the spots locals love. Wandr stitches it all into one quiet, beautiful guide for New York.",
+    transitNum: '01 — MTA Subway', transitTitle: 'The subway, <span class="italic">decoded.</span>',
+    transitDesc: "Live MTA schedules, OMNY fares, station maps, and the unspoken rules of every line.",
+    transitFare: 'OMNY guide',
+    transitMockup: { header: '14 St – Union Square', sub: 'Live', lines: [['4 · Uptown Express', '1 min'], ['L · Brooklyn-bound', '3 min'], ['N · Astoria', '5 min'], ['Q · 96 St-2nd Ave', '8 min']]},
+    shopMockup: { header: 'SoHo, Manhattan', sub: '14 stores', lines: [['Strand Bookstore', '0.3 mi'], ['Glossier (flagship)', '0.4 mi'], ['Housing Works', '0.2 mi'], ['Apartment by The Line', '0.5 mi']]},
+    movieMockup: { header: 'Theaters near you', sub: '5 venues', lines: [['Angelika Film Center', '0.5 mi'], ['IFC Center', '0.6 mi'], ['Metrograph (LES)', '1.2 mi'], ['Film Forum', '0.8 mi']]},
+    gemMockup: { header: 'Near Greenwich Village', sub: '4 gems', lines: [['Joe\'s Pizza', '★ 4.9'], ['Strand Bookstore', '★ 4.8'], ['Stonewall Inn', '★ 4.7'], ['Caffe Reggio', '★ 4.8']]},
+    stats: { transit: '472 stops', shuttle: '38 routes', food: '900+ spots', shop: '450+ stores', movie: '52 theaters', gem: '1200+ gems' },
+    submissions: [
+      { initial: 'A', name: 'Aaliyah · Harlem', meta: 'Local for 15 years · Verified', tag: '◆ Hidden gem', quote: 'Sylvia\'s is great but for everyday food, get to Charles\' Country Pan Fried Chicken. Cash only, worth the trip.' },
+      { initial: 'D', name: 'David · Williamsburg', meta: 'Brooklyn native · Verified', tag: '◆ Local tip', quote: 'NYC Ferry is technically not free but at $4 with subway transfer it beats every river tour. Take it from DUMBO at sunset.' },
+      { initial: 'P', name: 'Priya · LES', meta: 'Local for 6 years · Verified', tag: '◆ Local tip', quote: 'Skip Times Square. The view from Brooklyn Bridge Park at dusk is the New York people don\'t shut up about. Free.' }
+    ],
+    categoryDetails: {
+      travel: { title: 'MTA Subway', desc: 'Live arrival times across all numbered and lettered lines, plus PATH and SIR. OMNY fare guide, station accessibility, and the all-important "which end of the platform" advice.', linkText: 'Open MTA →', link: 'https://new.mta.info' },
+      shuttle: { title: 'Free NYC Shuttles', desc: 'IKEA Water Taxi (Wall St ↔ Brooklyn — best free harbor view), Hudson Yards loop, Brooklyn Navy Yard shuttle, Mt Sinai network.', linkText: 'Browse routes →', link: '#' },
+      food: { title: 'NYC Food', desc: 'Joe\'s Pizza for the dollar slice. Russ & Daughters for the bagel. Charles\' Country in Harlem. Smorgasburg in Brooklyn.', linkText: 'Open in Maps →', link: 'https://www.google.com/maps/search/best+restaurants+nyc' },
+      shop: { title: 'NYC Shopping', desc: 'SoHo for design, LES for vintage, Williamsburg for indie, Madison Ave for luxury. Plus the Woodbury Common outlets (free shuttle from Port Authority).', linkText: 'Explore →', link: 'https://www.nyctourism.com/things-to-do/shopping/' },
+      movie: { title: 'NYC Theaters', desc: 'Angelika and IFC Center for indie. Metrograph for repertory. Film Forum for arthouse. Lincoln Center\'s Walter Reade for festival programming.', linkText: 'See showtimes →', link: 'https://www.fandango.com/new-york-ny_movietimes' },
+      gem: { title: 'NYC Hidden Gems', desc: 'The Cloisters at sunset. The High Line\'s lesser-known southern entrance. Brooklyn Bridge Park, Pier 1 specifically. The IKEA water taxi.', linkText: 'Browse all →', link: '#' }
+    }
+  }
+};
+
+function renderMockup(id, m) {
+  const el = document.getElementById(id); if (!el) return;
+  el.innerHTML = `<div class="mockup-header"><span>◆ ${m.header}</span><span>${m.sub}</span></div>` +
+    m.lines.map(([l, t]) => `<div class="mockup-line"><span>${l}</span><span class="mockup-time">${t}</span></div>`).join('');
+}
+function renderSubmissions(s) {
+  document.getElementById('submissions').innerHTML = s.map(x =>
+    `<div class="submission-card"><div class="submission-author"><div class="submission-avatar">${x.initial}</div><div><div class="submission-name">${x.name}</div><div class="submission-meta">${x.meta}</div></div></div><div class="submission-content">"${x.quote}"</div><span class="submission-tag">${x.tag}</span></div>`).join('');
+}
+let activeCity = 'Boston';
+function applyCity(c) {
+  activeCity = c; const d = cityData[c]; if (!d) return;
+  document.getElementById('cityName').textContent = c;
+  document.getElementById('heroSub').textContent = d.sub;
+  document.getElementById('transitNum').textContent = d.transitNum;
+  document.getElementById('transitTitle').innerHTML = d.transitTitle;
+  document.getElementById('transitDesc').textContent = d.transitDesc;
+  document.getElementById('transitFare').textContent = d.transitFare;
+  renderMockup('transitMockup', d.transitMockup);
+  renderMockup('shopMockup', d.shopMockup);
+  renderMockup('movieMockup', d.movieMockup);
+  renderMockup('gemMockup', d.gemMockup);
+  document.getElementById('statTransit').textContent = d.stats.transit;
+  document.getElementById('statShuttle').textContent = d.stats.shuttle;
+  document.getElementById('statFood').textContent = d.stats.food;
+  document.getElementById('statShop').textContent = d.stats.shop;
+  document.getElementById('statMovie').textContent = d.stats.movie;
+  document.getElementById('statGem').textContent = d.stats.gem;
+  renderSubmissions(d.submissions);
+}
+applyCity('Boston');
+
+document.querySelectorAll('.city-pill[data-city]').forEach(p => p.addEventListener('click', () => {
+  document.querySelectorAll('.city-pill').forEach(x => x.classList.remove('active'));
+  p.classList.add('active');
+  applyCity(p.dataset.city);
+}));
+
+function trackMouse(e, el) {
+  const r = el.getBoundingClientRect();
+  el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+  el.style.setProperty('--my', `${e.clientY - r.top}px`);
+}
+
+const SUPPORTED = { 'Boston': { lat: 42.3601, lon: -71.0589, r: 25 }, 'New York': { lat: 40.7128, lon: -74.0060, r: 30 } };
+function distMiles(a,b,c,d){const R=3958.8,rad=x=>x*Math.PI/180,dl=rad(c-a),dn=rad(d-b),h=Math.sin(dl/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(dn/2)**2;return R*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));}
+async function reverseGeocode(lat, lon) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`);
+    const d = await r.json(); const a = d.address || {};
+    return { city: a.city || a.town || a.village || a.county || 'your area', full: (a.city || 'area') + (a.state ? ', ' + a.state : '') };
+  } catch { return { city: 'your area', full: 'your area' }; }
+}
+function useMyLocation() {
+  if (!navigator.geolocation) return showLocationModal({city:'your area', full:'your area'}, false);
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const { latitude, longitude } = pos.coords; let m = null;
+    for (const [c, d] of Object.entries(SUPPORTED)) if (distMiles(latitude, longitude, d.lat, d.lon) <= d.r) { m = c; break; }
+    if (m) { document.querySelectorAll('.city-pill').forEach(p => p.classList.toggle('active', p.dataset.city === m)); applyCity(m); }
+    else { const p = await reverseGeocode(latitude, longitude); showLocationModal(p, true); }
+  }, () => showLocationModal({city:'your area', full:'your area'}, false));
+}
+function showLocationModal(p, h) {
+  document.getElementById('modalTitle').innerHTML = `Hi from <span class="italic">${p.city}</span> 👋`;
+  const d = document.getElementById('modalDetected');
+  if (h && p.full !== 'your area') { d.textContent = `📍 ${p.full}`; d.style.display = 'inline-block'; } else { d.style.display = 'none'; }
+  document.getElementById('modalMessage').innerHTML = `We don't have Wandr in <strong>${p.city}</strong> yet — but we're working on it. Until then, explore Boston or New York.`;
+  openModal('locationModal');
+}
+function closeModalAndSwitch(c) {
+  closeModal('locationModal');
+  document.querySelectorAll('.city-pill').forEach(p => p.classList.toggle('active', p.dataset.city === c));
+  applyCity(c); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; if (id === 'signupModal') resetSignupForm(); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); }));
+
+function openCategoryModal(cat) {
+  const d = cityData[activeCity].categoryDetails[cat]; if (!d) return;
+  document.getElementById('catModalContent').innerHTML = `<h3>${d.title} in ${activeCity}</h3><p>${d.desc}</p><div class="modal-cta"><a href="${d.link}" target="_blank" rel="noopener" class="btn btn-primary">${d.linkText}</a><button class="btn btn-outline" onclick="closeModal('catModal'); openSignup();">Save to my list</button></div>`;
+  openModal('catModal');
+}
+function openSignup() { resetSignupForm(); openModal('signupModal'); }
+function resetSignupForm() {
+  document.getElementById('signupFormContainer').innerHTML = `<h3>Sign up <span class="italic">free.</span></h3><p>Save spots, pin your stay, get personalized routes. Takes 10 seconds.</p><div class="signup-form"><div class="form-field"><label>Name</label><input type="text" id="signupName" placeholder="Jane Doe"></div><div class="form-field"><label>Email</label><input type="email" id="signupEmail" placeholder="jane@example.com"></div><div class="form-field"><label>Password</label><input type="password" id="signupPassword" placeholder="At least 8 characters"></div></div><button class="btn btn-primary btn-large" onclick="handleSignup()" style="width:100%;justify-content:center;">Create my account →</button><p style="margin-top:16px;font-size:12px;text-align:center;color:rgba(10,10,10,0.5);">Free forever · No credit card · Unsubscribe anytime</p>`;
+}
+function handleSignup() {
+  const n = document.getElementById('signupName').value.trim(), e = document.getElementById('signupEmail').value.trim(), p = document.getElementById('signupPassword').value;
+  if (!n || !e || !p) return alert('Please fill in all fields.');
+  if (p.length < 8) return alert('Password should be at least 8 characters.');
+  if (!e.includes('@')) return alert('Please enter a valid email.');
+  document.getElementById('signupFormContainer').innerHTML = `<div class="signup-success"><div class="signup-success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><h3>You're on the list, <span class="italic">${n}!</span></h3><p>We'll email <strong>${e}</strong> the moment Wandr's full account features go live.</p><button class="btn btn-primary" onclick="closeModal('signupModal')" style="margin-top:16px;">Keep exploring</button></div>`;
+}
+
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => { if (window.scrollY > 40) nav.classList.add('scrolled'); else nav.classList.remove('scrolled'); });
+const observer = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.15, rootMargin: '0px 0px -80px 0px' });
+document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => observer.observe(el));
+
+const chatToggle = document.getElementById('chatToggle'), chatWindow = document.getElementById('chatWindow'), chatClose = document.getElementById('chatClose'), chatMessages = document.getElementById('chatMessages');
+chatToggle.addEventListener('click', () => chatWindow.classList.toggle('open'));
+chatClose.addEventListener('click', () => chatWindow.classList.remove('open'));
+const botResponses = {
+  'how': "Wandr is a free travel guide. Pick your city, browse transit, food, shopping, movies, and hidden gems — then sign up to save your favorites.",
+  'city': "Live in Boston and New York. Chicago, SF, and DC are next. Sign up and we'll email you when yours launches.",
+  'free': "Completely free. No card, no premium tier, no ads. The core app stays free.",
+  'signup': "Save spots, pin your hotel, offline mode, and the ability to comment on community submissions."
+};
+function addMessage(t, type) {
+  const m = document.createElement('div'); m.className = `chat-msg ${type}`; m.textContent = t;
+  chatMessages.appendChild(m); chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+document.querySelectorAll('.quick-reply').forEach(b => b.addEventListener('click', () => {
+  addMessage(b.textContent, 'user'); b.style.display = 'none';
+  setTimeout(() => addMessage(botResponses[b.dataset.q], 'bot'), 600);
+}));
+</script>
+</body>
+</html>

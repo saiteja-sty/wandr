@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run Wandr API",
+      "request": "launch",
+      "mainClass": "com.wandr.api.WandrApiApplication",
+      "projectName": "wandr-api",
+      "cwd": "${workspaceFolder}/backend"
+    }
+  ]
+}

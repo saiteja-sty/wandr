@@ -1,0 +1,20 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.compile.nullAnalysis.mode": "automatic",
+  "files.exclude": {
+    "**/target": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "java.project.sourcePaths": [
+    "backend/src/main/java"
+  ],
+  "java.project.outputPath": "backend/target/classes",
+  "spring-boot.ls.problem.application-properties.unknown-property": "warning",
+  "editor.formatOnSave": false,
+  "files.associations": {
+    "*.html": "html"
+  }
+}
